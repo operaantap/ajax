@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+  <head>
+
+    <title>File Upload</title>
+
+    <!-- link to the CSS framework; Bootstrap  -->
+
+    <link
+
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+
+      rel="stylesheet"
+
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+
+      crossorigin="anonymous"
+
+    />
+
+    <!-- styling for the container of the Progress Bar -->
+
+    <style>
+
+        .progress{width: 465px;}
+
+    </style>
+
+  </head>
+
+  <body>
+    
+    <!-- File upload form -->
+
+    <form id="uploadForm" enctype="multipart/form-data">
+
+      <label>Choose File:</label>
+
+      <input type="file" name="file" id="fileInput" />
+
+      <input type="submit" name="submit" value="UPLOAD" />
+
+    </form>
+
+    <!-- Progress bar -->
+
+    <div class="progress" >
+
+      <div class="progress-bar"></div>
+
+    </div>
+
+    <!-- Display upload status -->
+
+    <div id="uploadStatus"></div>
+
+    <script
+
+      src="https://code.jquery.com/jquery-3.6.0.js"
+
+      integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
+
+      crossorigin="anonymous"
+
+    ></script>
+
+    <script>
+
+      $(document).ready(function () {
+
+        // File upload via Ajax
+
+        $("#uploadForm").on("submit", function (e) {
+
+          e.preventDefault();
+
+          $.ajax({
+
+            xhr: function () {
+
+              var xhr = new window.XMLHttpRequest();
+
+              xhr.upload.addEventListener(
+
+                "progress",
+
+                function (evt) {
+
+                  if (evt.lengthComputable) {
+
+                    var percentComplete = (evt.loaded / evt.total) * 100;
+
+                    $(".progress-bar").width(percentComplete + "%");
+
+                    $(".progress-bar").html(percentComplete + "%");
+
+                  }
+
+                },
+
+                false
+
+              );
+
+              return xhr;
+
+            },
+
+            type: "POST",
+
+            url: "upload.php",
+
+            data: new FormData(this),
+
+            contentType: false,
+
+            cache: false,
+
+            processData: false,
+
+            beforeSend: function () {
+
+              $(".progress-bar").width("0%");
+
+              $("#uploadStatus").html('<img src=""/>');
+
+            },
+
+            error: function () {
+
+              $("#uploadStatus").html(
+
+                '<p style="color:#EA4335;">File upload failed, please try again.</p>'
+
+              );
+
+            },
+
+            success: function (resp) {
+
+              if (resp == "ok") {
+
+                $("#uploadForm")[0].reset();
+
+                $("#uploadStatus").html(
+
+                  '<p style="color:#28A74B;">File has uploaded successfully!</p>'
+
+                );
+
+              } else if (resp == "err") {
+
+                $("#uploadStatus").html(
+
+                  '<p style="color:#EA4335;">Please select a valid file to upload.</p>'
+
+                );
+
+              }
+
+            },
+
+          });
+
+        });
+
+
+
+        // File type validation
+
+        $("#fileInput").change(function () {
+
+          var allowedTypes = [
+
+            "application/pdf",
+
+            "application/msword",
+
+            "application/vnd.ms-office",
+
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+
+            "image/jpeg",
+
+            "image/png",
+
+            "image/jpg",
+
+            "image/gif",
+
+          ];
+
+          var file = this.files[0];
+
+          var fileType = file.type;
+
+          if (!allowedTypes.includes(fileType)) {
+
+            alert(
+
+              "Please select a valid file (PDF/DOC/DOCX/JPEG/JPG/PNG/GIF)."
+
+            );
+
+            $("#fileInput").val("");
+
+            return false;
+
+          }
+
+        });
+
+      });
+
+    </script>
+
+  </body>
+
+</html>
